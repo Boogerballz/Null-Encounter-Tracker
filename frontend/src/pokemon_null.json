@@ -1405,7 +1405,7 @@
             "rate": 10
           },
           {
-            "pokemon": "Luxio",
+            "pokemon": "Purrloin",
             "level": 15,
             "rate": 5
           },
@@ -1418,6 +1418,70 @@
             "pokemon": "Pikachu",
             "level": 15,
             "rate": 1
+          }
+        ],
+        "fishing": [
+          {
+            "pokemon": "Totodile",
+            "level": 15,
+            "rate": 20
+          },
+          {
+            "pokemon": "Inkay",
+            "level": 15,
+            "rate": 20
+          },
+          {
+            "pokemon": "Clauncher",
+            "level": 15,
+            "rate": 20
+          },
+          {
+            "pokemon": "Buizel",
+            "level": 15,
+            "rate": 20
+          },
+          {
+            "pokemon": "Lotad",
+            "level": 15,
+            "rate": 10
+          },
+          {
+            "pokemon": "Seel",
+            "level": 15,
+            "rate": 10
+          }
+        ],
+        "surfing": [
+          {
+            "pokemon": "Kangaskhan",
+            "level": 45,
+            "rate": 20
+          },
+          {
+            "pokemon": "Hariyama",
+            "level": 45,
+            "rate": 20
+          },
+          {
+            "pokemon": "Avalugg-Hisui",
+            "level": 45,
+            "rate": 20
+          },
+          {
+            "pokemon": "Eiscue",
+            "level": 45,
+            "rate": 20
+          },
+          {
+            "pokemon": "Raichu",
+            "level": 45,
+            "rate": 10
+          },
+          {
+            "pokemon": "Raichu-Alola",
+            "level": 45,
+            "rate": 10
           }
         ]
       }
@@ -5059,6 +5123,33 @@
             "pokemon": "Torchic",
             "level": 50,
             "rate": 1
+          }
+        ],
+        "rock_smash": [
+          {
+            "pokemon": "Magmortar",
+            "level": 50,
+            "rate": 25
+          },
+          {
+            "pokemon": "Electivire",
+            "level": 50,
+            "rate": 25
+          },
+          {
+            "pokemon": "Lycanroc",
+            "level": 50,
+            "rate": 25
+          },
+          {
+            "pokemon": "Pyroar",
+            "level": 50,
+            "rate": 15
+          },
+          {
+            "pokemon": "Ampharos",
+            "level": 50,
+            "rate": 10
           }
         ]
       }

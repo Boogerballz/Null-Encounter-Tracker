@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 
 import './App.css';
+import encounterData from './pokemon_null.json';
 
-const API = 'https://null-tracker-backend.onrender.com';
+const routes = encounterData.routes;
+
 const SPRITE_GEN5 = 'https://play.pokemonshowdown.com/sprites/gen5/';
 const SPRITE_ANI  = 'https://play.pokemonshowdown.com/sprites/ani/';
 const TYPE_NULL_SPRITE = 'https://play.pokemonshowdown.com/sprites/gen5/typenull.png';
@@ -70,6 +72,9 @@ const SPRITE_OVERRIDES = {
   'wo-chien':               'wochien',
   'chien-pao':              'chienpao',
   'ting-lu':                'tinglu',
+  'mr-rime':                'mrrime',
+  'porygon-z':              'porygonz',
+  'kommo-o':                'kommoo',
 };
 
 const getGen5Url = (name) => {
@@ -80,24 +85,13 @@ const getAniUrl  = (name) => `${SPRITE_ANI}${toShowdownName(name)}.gif`;
 const getNulldexUrl = (name) => `https://nulldex.pokemon0null.workers.dev/pokemon/${encodeURIComponent(toShowdownName(name))}`;
 
 const SmartSprite = memo(function SmartSprite({ name, className, style }) {
-  const [src, setSrc] = useState(() => getGen5Url(name));
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    setSrc(getGen5Url(name));
-    setFailed(false);
-  }, [name]);
-
-  const handleError = useCallback(() => {
-    setSrc(prev => {
-      if (prev === getGen5Url(name)) return getAniUrl(name);
-      setFailed(true);
-      return prev;
-    });
-  }, [name]);
-
-  if (failed) return <div className="sprite-placeholder" style={style}>?</div>;
-  return <img src={src} alt={name} className={className} style={style} onError={handleError} />;
+  const [stage, setStage] = useState(0); // 0 = gen5, 1 = animated, 2 = failed
+  useEffect(() => { setStage(0); }, [name]);
+  if (stage > 1) return <div className="sprite-placeholder" style={style}>?</div>;
+  const src = stage === 0 ? getGen5Url(name) : getAniUrl(name);
+  return <img src={src} alt={name} className={className} style={style}
+              loading="lazy" decoding="async"
+              onError={() => setStage(s => Math.min(s + 1, 2))} />;
 });
 
 const EVO_CHAINS = [
@@ -135,7 +129,11 @@ const EVO_CHAINS = [
   ["chansey","blissey"],["tangela","tangrowth"],["horsea","seadra","kingdra"],
   ["goldeen","seaking"],["staryu","starmie"],
   ["mime-jr","mr-mime","mr-mime-galar","mr-rime"],
-  ["scyther","scizor","kleavor"],["magmar","magmortar"],
+  ["scyther","scizor","kleavor"],
+  ["elekid","electabuzz","electivire"],["magby","magmar","magmortar"],
+  ["mantyke","mantine"],["basculin","basculegion","basculegion-f"],
+  ["poipole","naganadel"],
+  ["pumpkaboo","pumpkaboo-small","pumpkaboo-large","pumpkaboo-super","gourgeist"],
   ["tauros","tauros-paldea","tauros-paldea-blaze","tauros-paldea-aqua"],
   ["magikarp","gyarados"],
   ["eevee","vaporeon","jolteon","flareon","espeon","umbreon","leafeon","glaceon","sylveon"],
@@ -150,11 +148,11 @@ const EVO_CHAINS = [
   ["hoppip","skiploom","jumpluff"],["aipom","ambipom"],["sunkern","sunflora"],
   ["yanma","yanmega"],["wooper","wooper-paldea","quagsire","clodsire"],
   ["murkrow","honchkrow"],["misdreavus","mismagius"],
-  ["girafarig","farigiraf"],["pineco","forretress"],["dunsparce","dudunsparce"],
+  ["girafarig","farigiraf"],["pineco","forretress"],["dunsparce","dudunsparce","dudunsparce-three"],
   ["gligar","gliscor"],["snubbull","granbull"],
   ["qwilfish","qwilfish-hisui","overqwil"],
   ["sneasel","sneasel-hisui","weavile","sneasler"],
-  ["teddiursa","ursaring","ursaluna"],["slugma","magcargo"],
+  ["teddiursa","ursaring","ursaluna","ursaluna-bloodmoon"],["slugma","magcargo"],
   ["swinub","piloswine","mamoswine"],["corsola","corsola-galar","cursola"],
   ["remoraid","octillery"],["houndour","houndoom"],["phanpy","donphan"],
   ["stantler","wyrdeer"],["larvitar","pupitar","tyranitar"],
@@ -217,12 +215,12 @@ const EVO_CHAINS = [
   ["froakie","frogadier","greninja"],["bunnelby","diggersby"],
   ["fletchling","fletchinder","talonflame"],["litleo","pyroar"],
   ["flabebe","floette","florges"],["skiddo","gogoat"],["pancham","pangoro"],
-  ["espurr","meowstic"],["honedge","doublade","aegislash"],
+  ["espurr","meowstic","meowstic-f"],["honedge","doublade","aegislash"],
   ["spritzee","aromatisse"],["swirlix","slurpuff"],["inkay","malamar"],
   ["binacle","barbaracle"],["skrelp","dragalge"],["clauncher","clawitzer"],
   ["helioptile","heliolisk"],["tyrunt","tyrantrum"],["amaura","aurorus"],
   ["goomy","sliggoo","sliggoo-hisui","goodra","goodra-hisui"],
-  ["phantump","trevenant"],["pumpkaboo","gourgeist"],
+  ["phantump","trevenant"],
   ["bergmite","avalugg","avalugg-hisui"],["noibat","noivern"],
   ["rowlet","dartrix","decidueye","decidueye-hisui"],
   ["litten","torracat","incineroar"],["popplio","brionne","primarina"],
@@ -241,7 +239,7 @@ const EVO_CHAINS = [
   ["chewtle","drednaw"],["yamper","boltund"],["rolycoly","carkol","coalossal"],
   ["applin","flapple","appletun","dipplin","hydrapple"],
   ["silicobra","sandaconda"],["arrokuda","barraskewda"],
-  ["toxel","toxtricity"],["sizzlipede","centiskorch"],
+  ["toxel","toxtricity","toxtricity-low-key"],["sizzlipede","centiskorch"],
   ["clobbopus","grapploct"],["sinistea","polteageist"],
   ["hatenna","hattrem","hatterene"],["impidimp","morgrem","grimmsnarl"],
   ["milcery","alcremie"],["snom","frosmoth"],["cufant","copperajah"],
@@ -268,19 +266,40 @@ for (const chain of EVO_CHAINS) {
   for (const mon of chain) { FAMILY_MAP[mon] = new Set(chain); }
 }
 
-const normName = (name) => toShowdownName(name);
+// Cache name normalization (it's regex-heavy and was being redone thousands of times per click)
+const normCache = new Map();
+const normName = (name) => {
+  let v = normCache.get(name);
+  if (v === undefined) { v = toShowdownName(name); normCache.set(name, v); }
+  return v;
+};
+
+// Index the box once per change instead of scanning it for every encounter on the page
+const boxIndexCache = new WeakMap();
+const indexBox = (box) => {
+  let idx = boxIndexCache.get(box);
+  if (!idx) {
+    const alive = new Set(), blocked = new Set();
+    for (const p of box) {
+      if (p.status === 'dead') continue;
+      const n = normName(p.species);
+      alive.add(n); blocked.add(n);
+      const f = FAMILY_MAP[n];
+      if (f) for (const m of f) blocked.add(m);
+    }
+    idx = { alive, blocked };
+    boxIndexCache.set(box, idx);
+  }
+  return idx;
+};
 
 const isDupedOut = (encPokemon, boxPokemon) => {
+  const { alive, blocked } = indexBox(boxPokemon);
   const encN = normName(encPokemon);
-  return boxPokemon.some(p => {
-    if (p.status === 'dead') return false;
-    const boxN = normName(p.species);
-    if (encN === boxN) return true;
-    const ef = FAMILY_MAP[encN], bf = FAMILY_MAP[boxN];
-    if (ef && ef.has(boxN)) return true;
-    if (bf && bf.has(encN)) return true;
-    return false;
-  });
+  if (blocked.has(encN)) return true;
+  const ef = FAMILY_MAP[encN];
+  if (ef) for (const m of ef) if (alive.has(m)) return true;
+  return false;
 };
 
 const getAdjustedEncounters = (encounters, box) => {
@@ -297,9 +316,37 @@ const getAdjustedEncounters = (encounters, box) => {
 };
 
 const EXTRA_ENCOUNTERS = {
+  "Mauville City": {
+  gift: [
+    { group:"Game Corner · Pool 1 (after New Mauville quest)", pokemon:[
+      {pokemon:"Minior",level:34,rate:25},{pokemon:"Pumpkaboo",level:34,rate:25},
+      {pokemon:"Flabébé",level:34,rate:25},{pokemon:"Shellos",level:34,rate:25},
+    ]},
+    { group:"Game Corner · Pool 2 (after Feather Badge)", pokemon:[
+      {pokemon:"Togedemaru",level:34,rate:25},{pokemon:"Morpeko",level:34,rate:25},
+      {pokemon:"Toxel",level:34,rate:25},{pokemon:"Rotom",level:34,rate:25},
+    ]},
+    { group:"Game Corner · Pool 3 (after Mind Badge)", pokemon:[
+      {pokemon:"Honedge",level:34,rate:20},{pokemon:"Mimikyu",level:34,rate:20},
+      {pokemon:"Finizen",level:34,rate:20},{pokemon:"Darumaka",level:34,rate:20},
+      {pokemon:"Darumaka-Galar",level:34,rate:20},
+    ]},
+  ],
+},
+
+
   "Trainer Hill": {
-    gift: [{pokemon:"Eevee",level:1,rate:100}],
-  },
+  gift: [
+    {pokemon:"Vaporeon",level:35,rate:12.5},
+    {pokemon:"Jolteon", level:35,rate:12.5},
+    {pokemon:"Flareon", level:35,rate:12.5},
+    {pokemon:"Espeon",  level:35,rate:12.5},
+    {pokemon:"Umbreon", level:35,rate:12.5},
+    {pokemon:"Leafeon", level:35,rate:12.5},
+    {pokemon:"Glaceon", level:35,rate:12.5},
+    {pokemon:"Sylveon", level:35,rate:12.5},
+  ],
+},
   "Battle Frontier": {
     gift: [{pokemon:"Type: Null",level:40,rate:100}],
   },
@@ -348,68 +395,6 @@ const EXTRA_ENCOUNTERS = {
       {pokemon:"Stunfisk-Galar",level:35,rate:20},
     ],
   },
-  "Safari Zone South": {
-    grass: [{pokemon:"Uxie",level:76,rate:10},{pokemon:"Uxie",level:76,rate:10},{pokemon:"Azelf",level:76,rate:10},{pokemon:"Azelf",level:76,rate:10},{pokemon:"Mesprit",level:76,rate:10},{pokemon:"Mesprit",level:76,rate:10},{pokemon:"Cresselia",level:76,rate:10},{pokemon:"Cresselia",level:76,rate:10},{pokemon:"Shaymin",level:76,rate:10},{pokemon:"Shaymin",level:76,rate:5},{pokemon:"Shaymin",level:76,rate:4},{pokemon:"Shaymin",level:76,rate:1}],
-  },
-  "Safari Zone North": {
-    grass: [{pokemon:"Regieleki",level:76,rate:10},{pokemon:"Regieleki",level:76,rate:10},{pokemon:"Regidrago",level:76,rate:10},{pokemon:"Regidrago",level:76,rate:10},{pokemon:"Glastrier",level:76,rate:10},{pokemon:"Glastrier",level:76,rate:10},{pokemon:"Spectrier",level:76,rate:10},{pokemon:"Spectrier",level:76,rate:10},{pokemon:"Jirachi",level:76,rate:10},{pokemon:"Jirachi",level:76,rate:5},{pokemon:"Jirachi",level:76,rate:4},{pokemon:"Jirachi",level:76,rate:1}],
-    rock_smash: [{pokemon:"Regirock",level:76,rate:25},{pokemon:"Regice",level:76,rate:25},{pokemon:"Registeel",level:76,rate:25},{pokemon:"Regigigas",level:76,rate:15},{pokemon:"Regigigas",level:76,rate:10}],
-  },
-  "Safari Zone Southwest": {
-    grass: [{pokemon:"Raikou",level:78,rate:10},{pokemon:"Raikou",level:78,rate:10},{pokemon:"Entei",level:78,rate:10},{pokemon:"Entei",level:78,rate:10},{pokemon:"Suicune",level:78,rate:10},{pokemon:"Suicune",level:78,rate:10},{pokemon:"Mew",level:78,rate:10},{pokemon:"Mew",level:78,rate:10},{pokemon:"Celebi",level:78,rate:10},{pokemon:"Celebi",level:78,rate:5},{pokemon:"Celebi",level:78,rate:4},{pokemon:"Celebi",level:78,rate:1}],
-    fishing: [{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Manaphy",level:78,rate:10},{pokemon:"Manaphy",level:78,rate:10}],
-    surfing: [{pokemon:"Articuno",level:78,rate:20},{pokemon:"Zapdos",level:78,rate:20},{pokemon:"Moltres",level:78,rate:20},{pokemon:"Tapu Koko",level:78,rate:20},{pokemon:"Tapu Lele",level:78,rate:10},{pokemon:"Tapu Lele",level:78,rate:10}],
-  },
-  "Safari Zone Northwest": {
-    grass: [{pokemon:"Cobalion",level:78,rate:10},{pokemon:"Cobalion",level:78,rate:10},{pokemon:"Terrakion",level:78,rate:10},{pokemon:"Terrakion",level:78,rate:10},{pokemon:"Virizion",level:78,rate:10},{pokemon:"Virizion",level:78,rate:10},{pokemon:"Keldeo",level:78,rate:10},{pokemon:"Keldeo",level:78,rate:10},{pokemon:"Meloetta",level:78,rate:10},{pokemon:"Meloetta",level:78,rate:5},{pokemon:"Meloetta",level:78,rate:4},{pokemon:"Meloetta",level:78,rate:1}],
-    fishing: [{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Manaphy",level:78,rate:20},{pokemon:"Manaphy",level:78,rate:10},{pokemon:"Manaphy",level:78,rate:10}],
-    surfing: [{pokemon:"Articuno-Galar",level:78,rate:20},{pokemon:"Zapdos-Galar",level:78,rate:20},{pokemon:"Moltres-Galar",level:78,rate:20},{pokemon:"Tapu Fini",level:78,rate:20},{pokemon:"Tapu Bulu",level:78,rate:10},{pokemon:"Tapu Bulu",level:78,rate:10}],
-  },
-  "Safari Zone Southeast": {
-    grass: [{pokemon:"Chien-Pao",level:80,rate:10},{pokemon:"Wo-Chien",level:80,rate:10},{pokemon:"Ting-Lu",level:80,rate:10},{pokemon:"Chi-Yu",level:80,rate:10},{pokemon:"Okidogi",level:80,rate:10},{pokemon:"Fezandipiti",level:80,rate:10},{pokemon:"Munkidori",level:80,rate:10},{pokemon:"Pecharunt",level:80,rate:10},{pokemon:"Zarude",level:80,rate:10},{pokemon:"Magearna",level:80,rate:5},{pokemon:"Marshadow",level:80,rate:4},{pokemon:"Marshadow",level:80,rate:1}],
-    fishing: [{pokemon:"Volcanion",level:80,rate:20},{pokemon:"Volcanion",level:80,rate:20},{pokemon:"Latios",level:80,rate:20},{pokemon:"Latias",level:80,rate:20},{pokemon:"Manaphy",level:80,rate:10},{pokemon:"Phione",level:80,rate:10}],
-    surfing: [{pokemon:"Darkrai",level:80,rate:20},{pokemon:"Manaphy",level:80,rate:20},{pokemon:"Hoopa",level:80,rate:20},{pokemon:"Cresselia",level:80,rate:20},{pokemon:"Volcanion",level:80,rate:10},{pokemon:"Volcanion",level:80,rate:10}],
-    rock_smash: [{pokemon:"Diancie",level:80,rate:25},{pokemon:"Heatran",level:80,rate:25},{pokemon:"Regigigas",level:80,rate:25},{pokemon:"Zygarde-10%",level:80,rate:15},{pokemon:"Zygarde-10%",level:80,rate:10}],
-  },
-  "Safari Zone Northeast": {
-    grass: [{pokemon:"Genesect",level:80,rate:10},{pokemon:"Genesect",level:80,rate:10},{pokemon:"Zeraora",level:80,rate:10},{pokemon:"Zeraora",level:80,rate:10},{pokemon:"Meltan",level:80,rate:10},{pokemon:"Meltan",level:80,rate:10},{pokemon:"Ogerpon",level:80,rate:10},{pokemon:"Ogerpon",level:80,rate:10},{pokemon:"Victini",level:80,rate:10},{pokemon:"Victini",level:80,rate:5},{pokemon:"Victini",level:80,rate:4},{pokemon:"Kubfu",level:80,rate:1}],
-  },
-  "Navel Rock Entrance": {
-    grass: [{pokemon:"Minior",level:40,rate:10},{pokemon:"Forretress",level:40,rate:10},{pokemon:"Scizor",level:40,rate:10},{pokemon:"Kleavor",level:40,rate:10},{pokemon:"Flygon",level:40,rate:10},{pokemon:"Mienshao",level:40,rate:10},{pokemon:"Crobat",level:40,rate:10},{pokemon:"Gliscor",level:40,rate:10},{pokemon:"Cyclizar",level:40,rate:10},{pokemon:"Persian-Alola",level:40,rate:5},{pokemon:"Persian-Alola",level:40,rate:4},{pokemon:"Persian-Alola",level:40,rate:1}],
-  },
-  "Navel Rock B1F": {
-    grass: [{pokemon:"Salazzle",level:40,rate:10},{pokemon:"Togekiss",level:40,rate:10},{pokemon:"Ambipom",level:40,rate:10},{pokemon:"Hawlucha",level:40,rate:10},{pokemon:"Primarina",level:40,rate:10},{pokemon:"Swalot",level:40,rate:10},{pokemon:"Samurott",level:40,rate:10},{pokemon:"Samurott-Hisui",level:40,rate:10},{pokemon:"Grafaiai",level:40,rate:10},{pokemon:"Grafaiai",level:40,rate:5},{pokemon:"Whimsicott",level:40,rate:4},{pokemon:"Liepard",level:40,rate:1}],
-  },
-  "Navel Rock Fork": {
-    grass: [{pokemon:"Wyrdeer",level:40,rate:10},{pokemon:"Exeggutor-Alola",level:40,rate:10},{pokemon:"Carbink",level:40,rate:10},{pokemon:"Cofagrigus",level:40,rate:10},{pokemon:"Klefki",level:40,rate:10},{pokemon:"Reuniclus",level:40,rate:10},{pokemon:"Hatterene",level:40,rate:10},{pokemon:"Orbeetle",level:40,rate:10},{pokemon:"Spiritomb",level:40,rate:10},{pokemon:"Spiritomb",level:40,rate:5},{pokemon:"Spiritomb",level:40,rate:4},{pokemon:"Spiritomb",level:40,rate:1}],
-  },
-  "Navel Rock Up 1": {
-    grass: [{pokemon:"Excadrill",level:40,rate:10},{pokemon:"Toedscruel",level:40,rate:10},{pokemon:"Avalugg",level:40,rate:10},{pokemon:"Avalugg-Hisui",level:40,rate:10},{pokemon:"Torkoal",level:40,rate:10},{pokemon:"Coalossal",level:40,rate:10},{pokemon:"Togekiss",level:40,rate:10},{pokemon:"Gliscor",level:40,rate:10},{pokemon:"Corviknight",level:40,rate:10},{pokemon:"Altaria",level:40,rate:5},{pokemon:"Altaria",level:40,rate:4},{pokemon:"Altaria",level:40,rate:1}],
-  },
-  "Navel Rock Up 2": {
-    grass: [{pokemon:"Golem",level:40,rate:10},{pokemon:"Golem-Alola",level:40,rate:10},{pokemon:"Magnezone",level:40,rate:10},{pokemon:"Steelix",level:40,rate:10},{pokemon:"Forretress",level:40,rate:10},{pokemon:"Donphan",level:40,rate:10},{pokemon:"Bastiodon",level:40,rate:10},{pokemon:"Probopass",level:40,rate:10},{pokemon:"Crustle",level:40,rate:10},{pokemon:"Avalugg",level:40,rate:5},{pokemon:"Avalugg-Hisui",level:40,rate:4},{pokemon:"Avalugg-Hisui",level:40,rate:1}],
-  },
-  "Navel Rock Up 3": {
-    grass: [{pokemon:"Lycanroc-Midnight",level:40,rate:10},{pokemon:"Bibarel",level:40,rate:10},{pokemon:"Bombirdier",level:40,rate:10},{pokemon:"Carbink",level:40,rate:10},{pokemon:"Shuckle",level:40,rate:10},{pokemon:"Minior",level:40,rate:10},{pokemon:"Druddigon",level:40,rate:10},{pokemon:"Armaldo",level:40,rate:10},{pokemon:"Copperajah",level:40,rate:10},{pokemon:"Meowstic",level:40,rate:5},{pokemon:"Meowstic-F",level:40,rate:4},{pokemon:"Meowstic-F",level:40,rate:1}],
-  },
-  "Navel Rock Up 4": {
-    grass: [{pokemon:"Cradily",level:40,rate:10},{pokemon:"Porygon2",level:40,rate:10},{pokemon:"Alcremie",level:40,rate:10},{pokemon:"Gliscor",level:40,rate:10},{pokemon:"Hydrapple",level:40,rate:10},{pokemon:"Garganacl",level:40,rate:10},{pokemon:"Togekiss",level:40,rate:10},{pokemon:"Altaria",level:40,rate:10},{pokemon:"Sableye",level:40,rate:10},{pokemon:"Avalugg",level:40,rate:5},{pokemon:"Avalugg-Hisui",level:40,rate:4},{pokemon:"Avalugg-Hisui",level:40,rate:1}],
-  },
-  "Navel Rock Down 1": {
-    grass: [{pokemon:"Audino",level:40,rate:10},{pokemon:"Yanmega",level:40,rate:10},{pokemon:"Klawf",level:40,rate:10},{pokemon:"Espathra",level:40,rate:10},{pokemon:"Klefki",level:40,rate:10},{pokemon:"Stonjourner",level:40,rate:10},{pokemon:"Obstagoon",level:40,rate:10},{pokemon:"Hitmontop",level:40,rate:10},{pokemon:"Sableye",level:40,rate:10},{pokemon:"Hitmontop",level:40,rate:5},{pokemon:"Hitmontop",level:40,rate:4},{pokemon:"Hitmontop",level:40,rate:1}],
-  },
-  "Navel Rock Down 2": {
-    grass: [{pokemon:"Clefable",level:40,rate:10},{pokemon:"Mr. Mime",level:40,rate:10},{pokemon:"Shiinotic",level:40,rate:10},{pokemon:"Amoonguss",level:40,rate:10},{pokemon:"Lucario",level:40,rate:10},{pokemon:"Blastoise",level:40,rate:10},{pokemon:"Sinistcha",level:40,rate:10},{pokemon:"Volcarona",level:40,rate:10},{pokemon:"Toedscruel",level:40,rate:10},{pokemon:"Raichu",level:40,rate:5},{pokemon:"Raichu-Alola",level:40,rate:4},{pokemon:"Raichu-Alola",level:40,rate:1}],
-  },
-  "Navel Rock Down 3": {
-    grass: [{pokemon:"Shiftry",level:40,rate:10},{pokemon:"Lokix",level:40,rate:10},{pokemon:"Grimmsnarl",level:40,rate:10},{pokemon:"Toxicroak",level:40,rate:10},{pokemon:"Honchkrow",level:40,rate:10},{pokemon:"Obstagoon",level:40,rate:10},{pokemon:"Cinderace",level:40,rate:10},{pokemon:"Lycanroc-Dusk",level:40,rate:10},{pokemon:"Mawile",level:40,rate:10},{pokemon:"Spiritomb",level:40,rate:5},{pokemon:"Spiritomb",level:40,rate:4},{pokemon:"Spiritomb",level:40,rate:1}],
-  },
-  "Navel Rock Down 4": {
-    grass: [{pokemon:"Shiftry",level:40,rate:10},{pokemon:"Infernape",level:40,rate:10},{pokemon:"Palossand",level:40,rate:10},{pokemon:"Diggersby",level:40,rate:10},{pokemon:"Cyclizar",level:40,rate:10},{pokemon:"Scrafty",level:40,rate:10},{pokemon:"Blastoise",level:40,rate:10},{pokemon:"Mr. Mime-Galar",level:40,rate:10},{pokemon:"Hariyama",level:40,rate:10},{pokemon:"Hitmonchan",level:40,rate:5},{pokemon:"Hitmonlee",level:40,rate:4},{pokemon:"Hitmonlee",level:40,rate:1}],
-  },
-  "Navel Rock Down 5": {
-    grass: [{pokemon:"Meganium",level:40,rate:10},{pokemon:"Torterra",level:40,rate:10},{pokemon:"Drapion",level:40,rate:10},{pokemon:"Perrserker",level:40,rate:10},{pokemon:"Falinks",level:40,rate:10},{pokemon:"Escavalier",level:40,rate:10},{pokemon:"Turtonator",level:40,rate:10},{pokemon:"Cradily",level:40,rate:10},{pokemon:"Armaldo",level:40,rate:10},{pokemon:"Klawf",level:40,rate:5},{pokemon:"Sliggoo-Hisui",level:40,rate:4},{pokemon:"Pupitar",level:40,rate:1}],
-  },
 };
 
 const GYM_SECTIONS = [
@@ -444,11 +429,95 @@ const LAND_ROUTES = new Set([
   "Navel Rock Entrance","Navel Rock B1F","Navel Rock Fork","Navel Rock Up 1","Navel Rock Up 2","Navel Rock Up 3","Navel Rock Up 4","Navel Rock Down 1","Navel Rock Down 2","Navel Rock Down 3","Navel Rock Down 4","Navel Rock Down 5",
 ]);
 
+const GrassIcon = ({ size = 16 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/grass.png`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ imageRendering: 'pixelated', verticalAlign: 'middle' }}
+  />
+);
+
+const BallIcon = ({ size = 20 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/safari_ball.png`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ imageRendering: 'pixelated', verticalAlign: 'middle' }}
+  />
+);
+
+const LandIcon = ({ size = 18 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/land.png`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ imageRendering: 'pixelated', verticalAlign: 'middle' }}
+  />
+);
+
+const FishingIcon = ({ size = 20 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/fishing.png`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ imageRendering: 'pixelated', verticalAlign: 'middle' }}
+  />
+);
+const SurfIcon = ({ size = 18 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/surfing.png`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ imageRendering: 'pixelated', verticalAlign: 'middle' }}
+  />
+);
+
+const RockIcon = ({ size = 20 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/rock_smash.png`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ imageRendering: 'pixelated', verticalAlign: 'middle' }}
+  />
+);
+
+const StaticIcon = ({ size = 22 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/static.png`}
+    alt=""
+    style={{ height: size, width: 'auto', imageRendering: 'pixelated', verticalAlign: 'middle' }}
+  />
+);
+
+const GiftIcon = ({ size = 16 }) => (
+  <img
+    src={`${process.env.PUBLIC_URL}/icons/gift.png`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ imageRendering: 'pixelated', verticalAlign: 'middle', objectFit: 'contain' }}
+  />
+);
+
 const getMethodDisplay = (method, routeName) => {
   if (method === 'grass' && LAND_ROUTES.has(routeName)) {
-    return { color: '#8b7d5a', icon: '⛰️', label: 'LAND' };
+    return { color: '#8b7d5a', icon: <LandIcon />, label: 'LAND' };
   }
-  const icons = { grass:'🌿', fishing:'🎣', surfing:'🌊', rock_smash:'🪨', gift:'🎁', static:'⭐' };
+  const icons = {
+    grass: <GrassIcon />,
+    fishing: <FishingIcon />,
+    surfing: <SurfIcon />,
+    rock_smash: <RockIcon />,
+    gift: <GiftIcon />,
+    static: <StaticIcon />,
+  };
   const labels = { grass:'GRASS', fishing:'FISHING', surfing:'SURFING', rock_smash:'ROCK SMASH', gift:'GIFT', static:'STATIC' };
   return {
     color: METHOD_COLORS[method] || '#444',
@@ -459,25 +528,23 @@ const getMethodDisplay = (method, routeName) => {
 
 function MethodIcon({ method, small, routeName }) {
   const sz = small ? '0.9rem' : '1rem';
-  if (method === 'grass' && routeName && LAND_ROUTES.has(routeName)) return <span style={{fontSize:sz}}>⛰️</span>;
-  if (method === 'fishing')    return <span style={{fontSize:sz}}>🎣</span>;
-  if (method === 'rock_smash') return <span style={{fontSize:sz}}>🪨</span>;
-  if (method === 'grass')      return <span style={{fontSize:sz}}>🌿</span>;
-  if (method === 'surfing')    return <span style={{fontSize:sz}}>🌊</span>;
-  if (method === 'gift')       return <span style={{fontSize:sz}}>🎁</span>;
-  if (method === 'static')     return <span style={{fontSize:sz}}>⭐</span>;
+  if (method === 'grass' && routeName && LAND_ROUTES.has(routeName)) return <LandIcon size={small ? 14 : 18} />;
+  if (method === 'fishing')    return <FishingIcon size={small ? 16 : 20} />;
+  if (method === 'rock_smash') return <RockIcon size={small ? 16 : 20} />;
+  if (method === 'grass')      return <GrassIcon size={small ? 14 : 16} />;
+  if (method === 'surfing')    return <SurfIcon size={small ? 14 : 18} />;
+  if (method === 'gift')       return <GiftIcon size={small ? 14 : 16} />;
+  if (method === 'static')     return <StaticIcon size={small ? 18 : 22} />;
   return <span>•</span>;
 }
 
 function parseShowdown(text) {
   return text.trim().split(/\n\s*\n/).filter(b=>b.trim()).map(block=>{
     const lines = block.trim().split('\n');
-    const first = lines[0].trim();
-    let nickname='', species='';
-    if (first.includes('(')&&first.includes(')')) {
-      nickname=first.slice(0,first.indexOf('(')).trim();
-      species=first.slice(first.indexOf('(')+1,first.lastIndexOf(')')).trim();
-    } else { species=first.split('@')[0].trim(); }
+    const head = lines[0].split('@')[0].trim().replace(/\s*\((M|F)\)\s*$/, '');
+    const m = head.match(/^(.*?)\s*\((.+)\)$/);
+    let nickname = '', species = '';
+    if (m) { nickname = m[1]; species = m[2]; } else { species = head; }
     let level=1;
     for (const line of lines.slice(1)) {
       if (line.startsWith('Level:')) level=parseInt(line.split(':')[1])||level;
@@ -494,9 +561,13 @@ function SpritePopup({ enc, adjRate, onCatch, onClose }) {
         <SmartSprite name={enc.pokemon} className="popup-sprite" />
         <div className="popup-name">{enc.pokemon}</div>
         <div className="popup-meta">
-          Lv. {enc.level} · Base: {enc.rate}%
-          {adjRate !== undefined && adjRate !== enc.rate &&
-            <span className="popup-adj"> → Adj: {adjRate}%</span>}
+          {enc.level != null && (
+  <div className="popup-meta">
+    Lv. {enc.level} · Base: {enc.rate}%
+    {adjRate !== undefined && adjRate !== enc.rate &&
+      <span className="popup-adj"> → Adj: {adjRate}%</span>}
+  </div>
+)}
         </div>
         <div className="popup-actions">
           <button className="popup-btn catch-btn" onClick={()=>{onCatch(enc.pokemon);onClose();}}>
@@ -515,7 +586,15 @@ const SpriteCard = memo(function SpriteCard({ enc, adjRate, duped, onCatch }) {
   const [popup, setPopup] = useState(false);
   return (
     <>
-      <div className={`sprite-card ${duped?'duped':''}`} onClick={()=>setPopup(true)}>
+      <div
+  className={`sprite-card ${duped?'duped':''}`}
+  onClick={()=>setPopup(true)}
+  onContextMenu={(e)=>{
+    e.preventDefault();                    // stops the browser's right-click menu
+    if (!duped) onCatch(enc.pokemon);      // add to box unless it's already duped out
+  }}
+  title={duped ? undefined : 'Right-click to add to box'}
+>
         <SmartSprite name={enc.pokemon} className="sprite-img" />
         {duped && <div className="duped-badge">DUPED</div>}
         <div className="sprite-name">{enc.pokemon}</div>
@@ -530,7 +609,10 @@ const SpriteCard = memo(function SpriteCard({ enc, adjRate, duped, onCatch }) {
       {popup && <SpritePopup enc={enc} adjRate={adjRate} onCatch={onCatch} onClose={()=>setPopup(false)}/>}
     </>
   );
-});
+}, (a, b) =>
+  a.enc.pokemon === b.enc.pokemon && a.enc.level === b.enc.level && a.enc.rate === b.enc.rate &&
+  a.adjRate === b.adjRate && a.duped === b.duped && a.onCatch === b.onCatch
+);
 
 const RouteCard = memo(function RouteCard({ route, box, onCatch }) {
   const [expanded, setExpanded] = useState(false);
@@ -618,6 +700,11 @@ const RouteCard = memo(function RouteCard({ route, box, onCatch }) {
               <div className="method-header" style={{background:mColor}}>
                 <span>{mIcon}</span> <span>{mLabel}</span>
               </div>
+              {NOTE_LABELS[route.name]?.[method] && (
+                <div className="note-chip" style={{background:'rgba(233,69,96,0.15)',border:'1px solid var(--red)',borderRadius:4,padding:'3px 10px',fontSize:'0.7rem',fontWeight:700,color:'var(--red)'}}>
+                  {NOTE_LABELS[route.name][method]}
+                </div>
+              )}
             </div>
             <div className="sprite-grid">
               {adjusted.map((enc,i)=>(
@@ -650,7 +737,7 @@ function TrackerEntry({ p, onToggle, onRemove }) {
       </div>
       <div className="tracker-actions">
         <button className={`status-btn ${isDead?'revive-btn':'kill-btn'}`} onClick={()=>onToggle(p.id)}>
-          {isDead?'♻️':'💀'}
+          {isDead?'♻️':' '}
         </button>
         <button className="remove-btn" onClick={()=>onRemove(p.id)}>✕</button>
       </div>
@@ -724,53 +811,12 @@ function NuzlockeTracker({ box, setBox }) {
   );
 }
 
-const SAFARI_LAND = {
-  "Safari Zone South":      [{r:"10%",p:"Uxie"},{r:"10%",p:"Uxie"},{r:"10%",p:"Azelf"},{r:"10%",p:"Azelf"},{r:"10%",p:"Mesprit"},{r:"10%",p:"Mesprit"},{r:"10%",p:"Cresselia"},{r:"10%",p:"Cresselia"},{r:"10%",p:"Shaymin"},{r:"5%",p:"Shaymin"},{r:"4%",p:"Shaymin"},{r:"1%",p:"Shaymin"}],
-  "Safari Zone North":      [{r:"10%",p:"Regieleki"},{r:"10%",p:"Regieleki"},{r:"10%",p:"Regidrago"},{r:"10%",p:"Regidrago"},{r:"10%",p:"Glastrier"},{r:"10%",p:"Glastrier"},{r:"10%",p:"Spectrier"},{r:"10%",p:"Spectrier"},{r:"10%",p:"Jirachi"},{r:"5%",p:"Jirachi"},{r:"4%",p:"Jirachi"},{r:"1%",p:"Jirachi"}],
-  "Safari Zone Southwest":  [{r:"10%",p:"Raikou"},{r:"10%",p:"Raikou"},{r:"10%",p:"Entei"},{r:"10%",p:"Entei"},{r:"10%",p:"Suicune"},{r:"10%",p:"Suicune"},{r:"10%",p:"Mew"},{r:"10%",p:"Mew"},{r:"10%",p:"Celebi"},{r:"5%",p:"Celebi"},{r:"4%",p:"Celebi"},{r:"1%",p:"Celebi"}],
-  "Safari Zone Northwest":  [{r:"10%",p:"Cobalion"},{r:"10%",p:"Cobalion"},{r:"10%",p:"Terrakion"},{r:"10%",p:"Terrakion"},{r:"10%",p:"Virizion"},{r:"10%",p:"Virizion"},{r:"10%",p:"Keldeo"},{r:"10%",p:"Keldeo"},{r:"10%",p:"Meloetta"},{r:"5%",p:"Meloetta"},{r:"4%",p:"Meloetta"},{r:"1%",p:"Meloetta"}],
-  "Safari Zone Southeast":  [{r:"10%",p:"Chien-Pao"},{r:"10%",p:"Wo-Chien"},{r:"10%",p:"Ting-Lu"},{r:"10%",p:"Chi-Yu"},{r:"10%",p:"Okidogi"},{r:"10%",p:"Fezandipiti"},{r:"10%",p:"Munkidori"},{r:"10%",p:"Pecharunt"},{r:"10%",p:"Zarude"},{r:"5%",p:"Magearna"},{r:"4%",p:"Marshadow"},{r:"1%",p:"Marshadow"}],
-  "Safari Zone Northeast":  [{r:"10%",p:"Genesect"},{r:"10%",p:"Genesect"},{r:"10%",p:"Zeraora"},{r:"10%",p:"Zeraora"},{r:"10%",p:"Meltan"},{r:"10%",p:"Meltan"},{r:"10%",p:"Ogerpon"},{r:"10%",p:"Ogerpon"},{r:"10%",p:"Victini"},{r:"5%",p:"Victini"},{r:"4%",p:"Victini"},{r:"1%",p:"Kubfu"}],
-};
-
-const SAFARI_FISHING = {
-  "Safari Zone Southwest":  [{r:"20%",p:"Phione"},{r:"20%",p:"Phione"},{r:"20%",p:"Phione"},{r:"20%",p:"Phione"},{r:"10%",p:"Manaphy"},{r:"10%",p:"Manaphy"}],
-  "Safari Zone Northwest":  [{r:"20%",p:"Phione"},{r:"20%",p:"Phione"},{r:"20%",p:"Phione"},{r:"20%",p:"Manaphy"},{r:"10%",p:"Manaphy"},{r:"10%",p:"Manaphy"}],
-  "Safari Zone Southeast":  [{r:"20%",p:"Volcanion"},{r:"20%",p:"Volcanion"},{r:"20%",p:"Latios"},{r:"20%",p:"Latias"},{r:"10%",p:"Manaphy"},{r:"10%",p:"Phione"}],
-};
-
-const SAFARI_SURF = {
-  "Safari Zone Southwest":  [{r:"20%",p:"Articuno"},{r:"20%",p:"Zapdos"},{r:"20%",p:"Moltres"},{r:"20%",p:"Tapu Koko"},{r:"10%",p:"Tapu Lele"},{r:"10%",p:"Tapu Lele"}],
-  "Safari Zone Northwest":  [{r:"20%",p:"Articuno-Galar"},{r:"20%",p:"Zapdos-Galar"},{r:"20%",p:"Moltres-Galar"},{r:"20%",p:"Tapu Fini"},{r:"10%",p:"Tapu Bulu"},{r:"10%",p:"Tapu Bulu"}],
-  "Safari Zone Southeast":  [{r:"20%",p:"Darkrai"},{r:"20%",p:"Manaphy"},{r:"20%",p:"Hoopa"},{r:"20%",p:"Cresselia"},{r:"10%",p:"Volcanion"},{r:"10%",p:"Volcanion"}],
-};
-
-const SAFARI_ROCK = {
-  "Safari Zone North":      [{r:"25%",p:"Regirock"},{r:"25%",p:"Regice"},{r:"25%",p:"Registeel"},{r:"15%",p:"Regigigas"},{r:"10%",p:"Regigigas"}],
-  "Safari Zone Southeast":  [{r:"25%",p:"Diancie"},{r:"25%",p:"Heatran"},{r:"25%",p:"Regigigas"},{r:"15%",p:"Zygarde-10%"},{r:"10%",p:"Zygarde-10%"}],
-};
-
-const NAVEL_LAND = {
-  "Navel Rock Entrance": [{r:"10%",p:"Minior"},{r:"10%",p:"Forretress"},{r:"10%",p:"Scizor"},{r:"10%",p:"Kleavor"},{r:"10%",p:"Flygon"},{r:"10%",p:"Mienshao"},{r:"10%",p:"Crobat"},{r:"10%",p:"Gliscor"},{r:"10%",p:"Cyclizar"},{r:"5%",p:"Persian-Alola"},{r:"4%",p:"Persian-Alola"},{r:"1%",p:"Persian-Alola"}],
-  "Navel Rock B1F":      [{r:"10%",p:"Salazzle"},{r:"10%",p:"Togekiss"},{r:"10%",p:"Ambipom"},{r:"10%",p:"Hawlucha"},{r:"10%",p:"Primarina"},{r:"10%",p:"Swalot"},{r:"10%",p:"Samurott"},{r:"10%",p:"Samurott-Hisui"},{r:"10%",p:"Grafaiai"},{r:"5%",p:"Grafaiai"},{r:"4%",p:"Whimsicott"},{r:"1%",p:"Liepard"}],
-  "Navel Rock Fork":     [{r:"10%",p:"Wyrdeer"},{r:"10%",p:"Exeggutor-Alola"},{r:"10%",p:"Carbink"},{r:"10%",p:"Cofagrigus"},{r:"10%",p:"Klefki"},{r:"10%",p:"Reuniclus"},{r:"10%",p:"Hatterene"},{r:"10%",p:"Orbeetle"},{r:"10%",p:"Spiritomb"},{r:"5%",p:"Spiritomb"},{r:"4%",p:"Spiritomb"},{r:"1%",p:"Spiritomb"}],
-  "Navel Rock Up 1":     [{r:"10%",p:"Excadrill"},{r:"10%",p:"Toedscruel"},{r:"10%",p:"Avalugg"},{r:"10%",p:"Avalugg-Hisui"},{r:"10%",p:"Torkoal"},{r:"10%",p:"Coalossal"},{r:"10%",p:"Togekiss"},{r:"10%",p:"Gliscor"},{r:"10%",p:"Corviknight"},{r:"5%",p:"Altaria"},{r:"4%",p:"Altaria"},{r:"1%",p:"Altaria"}],
-  "Navel Rock Up 2":     [{r:"10%",p:"Golem"},{r:"10%",p:"Golem-Alola"},{r:"10%",p:"Magnezone"},{r:"10%",p:"Steelix"},{r:"10%",p:"Forretress"},{r:"10%",p:"Donphan"},{r:"10%",p:"Bastiodon"},{r:"10%",p:"Duraludon"},{r:"10%",p:"Crustle"},{r:"5%",p:"Avalugg"},{r:"4%",p:"Avalugg-Hisui"},{r:"1%",p:"Avalugg-Hisui"}],
-  "Navel Rock Up 3":     [{r:"10%",p:"Lycanroc-Midnight"},{r:"10%",p:"Bibarel"},{r:"10%",p:"Bombirdier"},{r:"10%",p:"Carbink"},{r:"10%",p:"Shuckle"},{r:"10%",p:"Minior"},{r:"10%",p:"Druddigon"},{r:"10%",p:"Armaldo"},{r:"10%",p:"Copperajah"},{r:"5%",p:"Meowstic"},{r:"4%",p:"Meowstic-F"},{r:"1%",p:"Meowstic-F"}],
-  "Navel Rock Up 4":     [{r:"10%",p:"Cradily"},{r:"10%",p:"Porygon2"},{r:"10%",p:"Alcremie"},{r:"10%",p:"Gliscor"},{r:"10%",p:"Hydrapple"},{r:"10%",p:"Garganacl"},{r:"10%",p:"Togekiss"},{r:"10%",p:"Altaria"},{r:"10%",p:"Sableye"},{r:"5%",p:"Avalugg"},{r:"4%",p:"Avalugg-Hisui"},{r:"1%",p:"Avalugg-Hisui"}],
-  "Navel Rock Down 1":   [{r:"10%",p:"Audino"},{r:"10%",p:"Yanmega"},{r:"10%",p:"Klawf"},{r:"10%",p:"Espathra"},{r:"10%",p:"Klefki"},{r:"10%",p:"Stonjourner"},{r:"10%",p:"Obstagoon"},{r:"10%",p:"Hitmontop"},{r:"10%",p:"Sableye"},{r:"5%",p:"Hitmontop"},{r:"4%",p:"Hitmontop"},{r:"1%",p:"Hitmontop"}],
-  "Navel Rock Down 2":   [{r:"10%",p:"Clefable"},{r:"10%",p:"Mr. Mime"},{r:"10%",p:"Shiinotic"},{r:"10%",p:"Amoonguss"},{r:"10%",p:"Lucario"},{r:"10%",p:"Blastoise"},{r:"10%",p:"Sinistcha"},{r:"10%",p:"Volcarona"},{r:"10%",p:"Toedscruel"},{r:"5%",p:"Raichu"},{r:"4%",p:"Raichu-Alola"},{r:"1%",p:"Raichu-Alola"}],
-  "Navel Rock Down 3":   [{r:"10%",p:"Shiftry"},{r:"10%",p:"Lokix"},{r:"10%",p:"Grimmsnarl"},{r:"10%",p:"Toxicroak"},{r:"10%",p:"Honchkrow"},{r:"10%",p:"Obstagoon"},{r:"10%",p:"Cinderace"},{r:"10%",p:"Lycanroc-Dusk"},{r:"10%",p:"Mawile"},{r:"5%",p:"Spiritomb"},{r:"4%",p:"Spiritomb"},{r:"1%",p:"Spiritomb"}],
-  "Navel Rock Down 4":   [{r:"10%",p:"Shiftry"},{r:"10%",p:"Infernape"},{r:"10%",p:"Palossand"},{r:"10%",p:"Diggersby"},{r:"10%",p:"Cyclizar"},{r:"10%",p:"Scrafty"},{r:"10%",p:"Blastoise"},{r:"10%",p:"Mr. Mime-Galar"},{r:"10%",p:"Hariyama"},{r:"5%",p:"Hitmonchan"},{r:"4%",p:"Hitmonlee"},{r:"1%",p:"Hitmonlee"}],
-  "Navel Rock Down 5":   [{r:"10%",p:"Meganium"},{r:"10%",p:"Torterra"},{r:"10%",p:"Drapion"},{r:"10%",p:"Perrserker"},{r:"10%",p:"Falinks"},{r:"10%",p:"Escavalier"},{r:"10%",p:"Turtonator"},{r:"10%",p:"Cradily"},{r:"10%",p:"Armaldo"},{r:"5%",p:"Klawf"},{r:"4%",p:"Sliggoo-Hisui"},{r:"1%",p:"Pupitar"}],
-};
-
 const OTHER_LOCATIONS = {
   "Safari Zone South":     { grass: [{pokemon:"Uxie",level:76,rate:10},{pokemon:"Uxie",level:76,rate:10},{pokemon:"Azelf",level:76,rate:10},{pokemon:"Azelf",level:76,rate:10},{pokemon:"Mesprit",level:76,rate:10},{pokemon:"Mesprit",level:76,rate:10},{pokemon:"Cresselia",level:76,rate:10},{pokemon:"Cresselia",level:76,rate:10},{pokemon:"Shaymin",level:76,rate:10},{pokemon:"Shaymin",level:76,rate:5},{pokemon:"Shaymin",level:76,rate:4},{pokemon:"Shaymin",level:76,rate:1}] },
   "Safari Zone North":     { grass: [{pokemon:"Regieleki",level:76,rate:10},{pokemon:"Regieleki",level:76,rate:10},{pokemon:"Regidrago",level:76,rate:10},{pokemon:"Regidrago",level:76,rate:10},{pokemon:"Glastrier",level:76,rate:10},{pokemon:"Glastrier",level:76,rate:10},{pokemon:"Spectrier",level:76,rate:10},{pokemon:"Spectrier",level:76,rate:10},{pokemon:"Jirachi",level:76,rate:10},{pokemon:"Jirachi",level:76,rate:5},{pokemon:"Jirachi",level:76,rate:4},{pokemon:"Jirachi",level:76,rate:1}], rock_smash: [{pokemon:"Regirock",level:76,rate:25},{pokemon:"Regice",level:76,rate:25},{pokemon:"Registeel",level:76,rate:25},{pokemon:"Regigigas",level:76,rate:15},{pokemon:"Regigigas",level:76,rate:10}] },
   "Safari Zone Southwest": { grass: [{pokemon:"Raikou",level:78,rate:10},{pokemon:"Raikou",level:78,rate:10},{pokemon:"Entei",level:78,rate:10},{pokemon:"Entei",level:78,rate:10},{pokemon:"Suicune",level:78,rate:10},{pokemon:"Suicune",level:78,rate:10},{pokemon:"Mew",level:78,rate:10},{pokemon:"Mew",level:78,rate:10},{pokemon:"Celebi",level:78,rate:10},{pokemon:"Celebi",level:78,rate:5},{pokemon:"Celebi",level:78,rate:4},{pokemon:"Celebi",level:78,rate:1}], fishing: [{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Manaphy",level:78,rate:10},{pokemon:"Manaphy",level:78,rate:10}], surfing: [{pokemon:"Articuno",level:78,rate:20},{pokemon:"Zapdos",level:78,rate:20},{pokemon:"Moltres",level:78,rate:20},{pokemon:"Tapu Koko",level:78,rate:20},{pokemon:"Tapu Lele",level:78,rate:10},{pokemon:"Tapu Lele",level:78,rate:10}] },
   "Safari Zone Northwest": { grass: [{pokemon:"Cobalion",level:78,rate:10},{pokemon:"Cobalion",level:78,rate:10},{pokemon:"Terrakion",level:78,rate:10},{pokemon:"Terrakion",level:78,rate:10},{pokemon:"Virizion",level:78,rate:10},{pokemon:"Virizion",level:78,rate:10},{pokemon:"Keldeo",level:78,rate:10},{pokemon:"Keldeo",level:78,rate:10},{pokemon:"Meloetta",level:78,rate:10},{pokemon:"Meloetta",level:78,rate:5},{pokemon:"Meloetta",level:78,rate:4},{pokemon:"Meloetta",level:78,rate:1}], fishing: [{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Phione",level:78,rate:20},{pokemon:"Manaphy",level:78,rate:20},{pokemon:"Manaphy",level:78,rate:10},{pokemon:"Manaphy",level:78,rate:10}], surfing: [{pokemon:"Articuno-Galar",level:78,rate:20},{pokemon:"Zapdos-Galar",level:78,rate:20},{pokemon:"Moltres-Galar",level:78,rate:20},{pokemon:"Tapu Fini",level:78,rate:20},{pokemon:"Tapu Bulu",level:78,rate:10},{pokemon:"Tapu Bulu",level:78,rate:10}] },
-  "Safari Zone Southeast": { grass: [{pokemon:"Chien-Pao",level:80,rate:10},{pokemon:"Wo-Chien",level:80,rate:10},{pokemon:"Ting-Lu",level:80,rate:10},{pokemon:"Chi-Yu",level:80,rate:10},{pokemon:"Okidogi",level:80,rate:10},{pokemon:"Fezandipiti",level:80,rate:10},{pokemon:"Munkidori",level:80,rate:10},{pokemon:"Pecharunt",level:80,rate:10},{pokemon:"Zarude",level:80,rate:10},{pokemon:"Magearna",level:80,rate:5},{pokemon:"Marshadow",level:80,rate:4},{pokemon:"Marshadow",level:80,rate:1}], fishing: [{pokemon:"Volcanion",level:80,rate:20},{pokemon:"Volcanion",level:80,rate:20},{pokemon:"Latios",level:80,rate:20},{pokemon:"Latias",level:80,rate:20},{pokemon:"Manaphy",level:80,rate:10},{pokemon:"Phione",level:80,rate:10}], surfing: [{pokemon:"Darkrai",level:80,rate:20},{pokemon:"Manaphy",level:80,rate:20},{pokemon:"Hoopa",level:80,rate:20},{pokemon:"Cresselia",level:80,rate:20},{pokemon:"Volcanion",level:80,rate:10},{pokemon:"Volcanion",level:80,rate:10}], rock_smash: [{pokemon:"Diancie",level:80,rate:25},{pokemon:"Heatran",level:80,rate:25},{pokemon:"Regigigas",level:80,rate:25},{pokemon:"Zygarde",level:80,rate:15},{pokemon:"Zygarde",level:80,rate:10}] },
+  "Safari Zone Southeast": { grass: [{pokemon:"Chien-Pao",level:80,rate:10},{pokemon:"Wo-Chien",level:80,rate:10},{pokemon:"Ting-Lu",level:80,rate:10},{pokemon:"Chi-Yu",level:80,rate:10},{pokemon:"Okidogi",level:80,rate:10},{pokemon:"Fezandipiti",level:80,rate:10},{pokemon:"Munkidori",level:80,rate:10},{pokemon:"Pecharunt",level:80,rate:10},{pokemon:"Zarude",level:80,rate:10},{pokemon:"Magearna",level:80,rate:5},{pokemon:"Marshadow",level:80,rate:4},{pokemon:"Marshadow",level:80,rate:1}], fishing: [{pokemon:"Volcanion",level:80,rate:20},{pokemon:"Volcanion",level:80,rate:20},{pokemon:"Latios",level:80,rate:20},{pokemon:"Latias",level:80,rate:20},{pokemon:"Manaphy",level:80,rate:10},{pokemon:"Phione",level:80,rate:10}], surfing: [{pokemon:"Darkrai",level:80,rate:20},{pokemon:"Manaphy",level:80,rate:20},{pokemon:"Hoopa",level:80,rate:20},{pokemon:"Cresselia",level:80,rate:20},{pokemon:"Volcanion",level:80,rate:10},{pokemon:"Volcanion",level:80,rate:10}], rock_smash: [{pokemon:"Diancie",level:80,rate:25},{pokemon:"Heatran",level:80,rate:25},{pokemon:"Regigigas",level:80,rate:25},{pokemon:"Zygarde-10%",level:80,rate:15},{pokemon:"Zygarde-10%",level:80,rate:10}] },
   "Safari Zone Northeast": { grass: [{pokemon:"Genesect",level:80,rate:10},{pokemon:"Genesect",level:80,rate:10},{pokemon:"Zeraora",level:80,rate:10},{pokemon:"Zeraora",level:80,rate:10},{pokemon:"Meltan",level:80,rate:10},{pokemon:"Meltan",level:80,rate:10},{pokemon:"Ogerpon",level:80,rate:10},{pokemon:"Ogerpon",level:80,rate:10},{pokemon:"Victini",level:80,rate:10},{pokemon:"Victini",level:80,rate:5},{pokemon:"Victini",level:80,rate:4},{pokemon:"Kubfu",level:80,rate:1}] },
   "Navel Rock Entrance":   { grass: [{pokemon:"Minior",level:40,rate:10},{pokemon:"Forretress",level:40,rate:10},{pokemon:"Scizor",level:40,rate:10},{pokemon:"Kleavor",level:40,rate:10},{pokemon:"Flygon",level:40,rate:10},{pokemon:"Mienshao",level:40,rate:10},{pokemon:"Crobat",level:40,rate:10},{pokemon:"Gliscor",level:40,rate:10},{pokemon:"Cyclizar",level:40,rate:10},{pokemon:"Persian-Alola",level:40,rate:5},{pokemon:"Persian-Alola",level:40,rate:4},{pokemon:"Persian-Alola",level:40,rate:1}] },
   "Navel Rock B1F":        { grass: [{pokemon:"Salazzle",level:40,rate:10},{pokemon:"Togekiss",level:40,rate:10},{pokemon:"Ambipom",level:40,rate:10},{pokemon:"Banette",level:40,rate:10},{pokemon:"Primarina",level:40,rate:10},{pokemon:"Hawlucha",level:40,rate:10},{pokemon:"Swalot",level:40,rate:10},{pokemon:"Samurott",level:40,rate:10},{pokemon:"Samurott-Hisui",level:40,rate:10},{pokemon:"Grafaiai",level:40,rate:5},{pokemon:"Whimsicott",level:40,rate:4},{pokemon:"Liepard",level:40,rate:1}] },
@@ -790,43 +836,45 @@ const SAFARI_LOCATIONS = ["Safari Zone South","Safari Zone North","Safari Zone S
 const NAVEL_LOCATIONS  = ["Navel Rock Entrance","Navel Rock B1F","Navel Rock Fork","Navel Rock Up 1","Navel Rock Up 2","Navel Rock Up 3","Navel Rock Up 4","Navel Rock Down 1","Navel Rock Down 2","Navel Rock Down 3","Navel Rock Down 4","Navel Rock Down 5"];
 
 const NOTE_LABELS = {
-  "Safari Zone North":     { grass: "Opens up after defeating Maxie in Magma Hideout.", rock_smash: "Opens up after defeating Maxie in Magma Hideout." },
-  "Safari Zone Southwest": { grass: "Opens up after getting the Mind Badge.", fishing: "Opens up after getting the Mind Badge.", surfing: "Opens up after getting the Mind Badge." },
-  "Safari Zone Northwest": { grass: "Opens up after defeating Archie in Seafloor Cavern.", fishing: "Opens up after defeating Archie in Seafloor Cavern.", surfing: "Opens up after defeating Archie in Seafloor Cavern." },
-  "Safari Zone Southeast": { grass: "Opens up after getting the Adamantite Badge.", fishing: "Opens up after getting the Adamantite Badge.", surfing: "Opens up after getting the Adamantite Badge.", rock_smash: "Opens up after getting the Adamantite Badge." },
-  "Safari Zone Northeast": { grass: "Opens up after getting the Adamantite Badge." },
-  "Navel Rock Entrance":   { grass: "U-turn table" },
+  "Safari Zone South":     { grass: "Opens up after getting the Pokeblock Case in Lilycove Contest Hall" },
+  "Safari Zone North":     { grass: "Opens up after defeating Maxie in Magma Hideout", rock_smash: "Opens up after defeating Maxie in Magma Hideout" },
+  "Safari Zone Southwest": { grass: "Opens up after getting the Mind Badge", fishing: "Opens up after getting the Mind Badge", surfing: "Opens up after getting the Mind Badge" },
+  "Safari Zone Northwest": { grass: "Opens up after defeating Archie in Seafloor Cavern", fishing: "Opens up after defeating Archie in Seafloor Cavern", surfing: "Opens up after defeating Archie in Seafloor Cavern" },
+  "Safari Zone Southeast": { grass: "Opens up after getting the Adamantite Badge", fishing: "Opens up after getting the Adamantite Badge", surfing: "Opens up after getting the Adamantite Badge", rock_smash: "Opens up after getting the Adamantite Badge" },
+  "Safari Zone Northeast": { grass: "Opens up after getting the Adamantite Badge" },
+  "Navel Rock Entrance":   { grass: "Pivot Move table" },
   "Navel Rock B1F":        { grass: "Encore table" },
   "Navel Rock Fork":       { grass: "Trick Room table" },
   "Navel Rock Up 1":       { grass: "Hazard Removal table" },
   "Navel Rock Up 2":       { grass: "Sturdy table" },
   "Navel Rock Up 3":       { grass: "Stealth Rock table" },
   "Navel Rock Up 4":       { grass: "Recovery table" },
-  "Navel Rock Down 1":     { grass: "Protect table" },
+  "Navel Rock Down 1":     { grass: "Protection table" },
   "Navel Rock Down 2":     { grass: "Redirection table" },
   "Navel Rock Down 3":     { grass: "Sucker Punch table" },
   "Navel Rock Down 4":     { grass: "Fake Out table" },
   "Navel Rock Down 5":     { grass: "Crit Immunity table" },
-  "Altering Grove":        { fishing: "Azumarill can use Perish Song." },
-  "Lilycove City":         { fishing: "both Primarina and Azumarill can use Perish Song." },
-  "Route 134":             { fishing: "Azumarill can use Perish Song." },
-  "Shoal Cave (Inner Room)": { surfing: "Politoed can use Perish Song." },
-  "Route 126":             { fishing: "Politoed can use Perish Song." },
-  "Route 122":             { surfing: "Mismagius can use Perish Song." },
-  "Fortree City":            { grass: "Altaria can use Perish Song." },
-  "Lilycove city":           { surfing: "Altaria can use Perish Song." },
-  "Route 131":             { surfing: "Primarina can use Perish Song." },
-  "Meteor Falls B1F Room 1":          { fishing: "Dewgong can use Perish Song." },
-  "Dewford Town":           { grass: "both Natu and Abra can use Teleport." },
-  "Meteor Falls 1F Room 1":          { rock_smash: "Solrock can use Explosion." },
-  "Sky Pillar":              { land: "Solrock can use Explosion." },
-  "Route 123":             { grass: "Forretress can use Explosion." },
-  "Meteor Falls 1F Room 2":          { surfing: "Bronzong can use Explosion." },
-  "Meteor Falls B1F Room 1":          { land: "Diancie can use Misty Explosion." },
-  "Route 118":             { grass: "Ferroseed can use Self-Destruct." },
-  "Route 127":             { fishing: "Pyukumuku can use Memento." },
-  "Meteor Falls 1F Room 2":          { fishing: "Gastrodon can use Memento." },
-  "Meteor Falls B1F Room 2":          { fishing: "Tatsugiri can use Memento." }
+  "Altering Grove":          { fishing: "Azumarill can use Perish Song" },
+  "Lilycove City":           { fishing: "Both Primarina and Azumarill can use Perish Song", surfing: "Altaria can use Perish Song" },
+  "Route 134":               { fishing: "Azumarill can use Perish Song" },
+  "Shoal Cave (Inner Room)": { surfing: "Politoed can use Perish Song" },
+  "Route 126":               { fishing: "Politoed can use Perish Song" },
+  "Route 122":               { surfing: "Mismagius can use Perish Song" },
+  "Fortree City":            { grass: "Altaria can use Perish Song" },
+  "Route 131":               { surfing: "Primarina can use Perish Song" },
+  "Dewford Town":            { grass: "Both Natu and Abra can use Teleport" },
+  "Meteor Falls":            { rock_smash: "Solrock can use Explosion" },
+  "Meteor Falls Room 2":     { surfing: "Bronzong can use Explosion", fishing: "Gastrodon can use Memento" },
+  "Meteor Falls B1F Room 1": { fishing: "Dewgong can use Perish Song", grass: "Diancie can use Misty Explosion" },
+  "Meteor Falls B1F Room 2": { fishing: "Tatsugiri can use Memento" },
+  "Sky Pillar 5F":           { grass: "Solrock can use Explosion" },
+  "Route 123":               { grass: "Forretress can use Explosion" },
+  "Route 127":               { fishing: "Pyukumuku can use Memento" },
+  "Abandoned Ship B1F Rooms":             { fishing: "Basculin can use Final Gambit" },
+  "Rustboro City":             { trade: "2 guaranteed 31 IVs" },
+  "Mirage Tower 3F":           { trade: "2 guaranteed 31 IVs" },
+  "Weather Institute":         { trade: "2 guaranteed 31 IVs & Genie is selected at random" },
+  "Fortree City":              { trade: "2 guaranteed 31 IVs" },
 };
 
 function OtherLocationCard({ name, encounters, box, onCatch }) {
@@ -899,9 +947,9 @@ function OtherSection({ box, onCatch }) {
   });
   return (
     <div className="special-section">
-      <div className="gym-header"><h2>🎁 Other Encounters</h2></div>
+      <div className="gym-header"><h2><BallIcon size={24}/> Other Encounters</h2></div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button style={tabStyle('safari')} onClick={() => setTab('safari')}>🌿 Safari Zone</button>
+        <button style={tabStyle('safari')} onClick={() => setTab('safari')}><BallIcon size={16}/> Safari Zone</button>
         <button style={tabStyle('navel')} onClick={() => setTab('navel')}>🪨 Navel Rock</button>
       </div>
       {locations.map(name => (
@@ -912,54 +960,109 @@ function OtherSection({ box, onCatch }) {
 }
  
 
-function SpecialSection() {
+const TRADES = [
+  { location: "Rustboro City",     wanted: "Qwilfish",  offered: ["Qwilfish-Hisui"] },
+  { location: "Mirage Tower 3F",   wanted: "Stoutland", offered: ["Houndstone"] },
+  { location: "Weather Institute", wanted: "Castform",  offered: ["Tornadus", "Thundurus", "Landorus", "Enamorus"] },
+  { location: "Fortree City",      wanted: "Florges",   wantedNote: "non-red color", offered: ["Floette-Eternal"] },
+];
+
+// You "have" the wanted mon only if that exact species is alive in your box.
+const ownsExact = (species, box) =>
+  box.some(p => p.status !== 'dead' && normName(p.species) === normName(species));
+
+const TradeIcon = memo(function TradeIcon({ name, role, owned, duped, note, rate, multi, onCatch }) {
+  const [popup, setPopup] = useState(false);
+  const blocked = role === 'wanted' ? owned : duped;
+  const cls = `sprite-card trade-icon${role === 'wanted' && owned ? ' trade-owned' : ''}${role === 'offered' && duped ? ' duped' : ''}`;
   return (
-    <div className="special-section">
-      <div className="gym-header"><h2>✨ Special Encounters</h2></div>
-      <div className="other-card">
-        <h3>🔄 Trades</h3>
-        <table className="other-table">
-          <thead><tr><th>Wanted Pokémon</th><th>Location</th><th>Offered Pokémon</th></tr></thead>
-          <tbody>
-            <tr><td>Qwilfish</td><td>Rustboro City</td><td>Qwilfish-Hisui</td></tr>
-            <tr><td>Stoutland</td><td>Mirage Tower 3F</td><td>Houndstone</td></tr>
-            <tr><td>Castform</td><td>Weather Institute</td><td>Tornadus / Thundurus / Landorus / Enamorus</td></tr>
-            <tr><td>Florges (non red color)</td><td>Fortree City</td><td>Floette-Eternal</td></tr>
-          </tbody>
-        </table>
+    <>
+      <div
+        className={cls}
+        onClick={() => setPopup(true)}
+        onContextMenu={(e) => { e.preventDefault(); if (!blocked) onCatch(name); }}
+        title={blocked ? undefined : 'Right-click to add to box'}
+      >
+        <SmartSprite name={name} className="sprite-img" />
+        {role === 'wanted' && owned && <div className="check-badge">✓</div>}
+        {role === 'offered' && duped && <div className="duped-badge">DUPED</div>}
+        <div className="sprite-name">{name}</div>
+        {multi && role === 'offered' && (
+          <div className="sprite-meta">
+            {duped
+              ? <span className="sprite-rate rate-duped">✕</span>
+              : <span className="sprite-rate">{rate}%</span>}
+          </div>
+        )}
+        {note && <div className="trade-note">{note}</div>}
       </div>
-      <div className="other-card">
-        <h3>⭐ Gifts / Statics</h3>
-        <table className="other-table">
-          <thead><tr><th>Location</th><th>Pokémon</th></tr></thead>
-          <tbody>
-            <tr><td>Trainer Hill</td><td>Random Eeveelution</td></tr>
-            <tr><td>Route 111</td><td>Random Golett / Sandygast / Sandshrew / Phanpy</td></tr>
-            <tr><td>New Mauville (Inside)</td><td>Random Voltorb / Voltorb-Hisui / Foongus / Ditto / Stunfisk-Galar</td></tr>
-            <tr><td>Battle Frontier</td><td>Type: Null</td></tr>
-            <tr><td>Aqua Hideout</td><td>Random Gimmighoul / Electrode-Hisui / Amoonguss / Ditto / Stunfisk-Galar</td></tr>
-            <tr><td>Mossdeep City Space Center</td><td>Choose Ultra Beast / Paradox to get one randomly</td></tr>
-          </tbody>
-        </table>
+      {popup && <SpritePopup enc={{ pokemon: name }} onCatch={onCatch} onClose={() => setPopup(false)} />}
+    </>
+  );
+});
+
+function TradeCard({ trade, box, onCatch }) {
+  const alive = box.filter(p => p.status !== 'dead');
+  // Any alive mon from the wanted Pokémon's evolution family satisfies the trade.
+  const tradedAway = alive.find(p => isDupedOut(trade.wanted, [p])) || null;
+  const owned = !!tradedAway;
+  // That mon leaves your box in the trade, so ignore it when checking dupes on what you'd receive.
+  const boxAfterTrade = tradedAway ? box.filter(p => p !== tradedAway) : box;
+  const openCount = trade.offered.filter(n => !isDupedOut(n, boxAfterTrade)).length;
+const offerRate = trade.offered.length > 1 && openCount > 0 ? Math.round(1000 / openCount) / 10 : undefined;
+  return (
+    <div className="route-card trade-card">
+      <div className="route-card-header" style={{ cursor: 'default' }}>
+        <h3>{trade.location}</h3>
       </div>
-      <div className="other-card">
-        <h3>🎰 Game Corner <span style={{fontSize:'0.75rem', fontWeight:'normal', color:'var(--text2)'}}>Available after New Mauville Quest</span></h3>
-        <table className="other-table">
-          <thead><tr><th>Pool</th><th>Pokémon</th></tr></thead>
-          <tbody>
-            <tr><td>Pool 1</td><td>Random Minior / Pumpkaboo / Flabébé / Shellos</td></tr>
-            <tr><td>Pool 2 (Accessible after Feather Badge)</td><td>Random Togedemaru / Morpeko / Toxel / Rotom</td></tr>
-            <tr><td>Pool 3 (Accessible after Mind Badge)</td><td>Random Honedge / Mimikyu / Finizen / Darumaka / Darumaka-G</td></tr>
-          </tbody>
-        </table>
+
+      <div className="encounter-method" style={{ padding: '3px 12px 12px' }}>
+        <div className="method-header-row">
+          <div className="method-header" style={{ background: '#1a5276' }}>
+            <span>🔄</span> <span>TRADE</span>
+          </div>
+          {NOTE_LABELS[trade.location]?.trade && (
+            <div className="note-chip" style={{
+              background: 'rgba(233,69,96,0.15)',
+              border: '1px solid var(--red)',
+              borderRadius: 4,
+              padding: '3px 10px',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              color: 'var(--red)',
+            }}>
+              {NOTE_LABELS[trade.location].trade}
+            </div>
+          )}
+        </div>
+
+        <div className="trade-row">
+          <TradeIcon name={trade.wanted} role="wanted" owned={owned} note={trade.wantedNote} onCatch={onCatch} />
+          <div className="trade-arrows" aria-hidden="true">
+            <span>→</span>
+            <span>←</span>
+          </div>
+          <div className="trade-offers">
+            {trade.offered.map(n => (
+              <TradeIcon key={n} name={n} role="offered" duped={isDupedOut(n, boxAfterTrade)} rate={offerRate} multi={trade.offered.length > 1} onCatch={onCatch} />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+function SpecialSection({ box, onCatch }) {
+  return (
+    <div className="special-section">
+      <div className="gym-header"><h2>✨ Special Encounters</h2></div>
+      {TRADES.map(t => <TradeCard key={t.location} trade={t} box={box} onCatch={onCatch} />)}
+    </div>
+  );
+}
+
 function App() {
-  const [routes,setRoutes]   = useState([]);
-  const [loading,setLoading] = useState(true);
   const [activeSection,setActiveSection] = useState('Roxanne');
   const [search,setSearch]   = useState('');
   const [box,setBox]         = useState(()=>{ try{return JSON.parse(localStorage.getItem('nuzlocke_box'))||[];}catch{return [];} });
@@ -967,14 +1070,10 @@ function App() {
   const sectionRefs = useRef({});
   const contentRef  = useRef();
 
-  useEffect(()=>{
-    fetch(`${API}/encounters/pokemon_null`)
-      .then(r=>r.json()).then(data=>{setRoutes(data.routes);setLoading(false);})
-      .catch(()=>setLoading(false));
-  },[]);
-
   useEffect(()=>{ document.body.className=darkMode?'dark':'light'; localStorage.setItem('dark_mode',darkMode); },[darkMode]);
-
+  useEffect(() => {
+  try { localStorage.setItem('nuzlocke_box', JSON.stringify(box)); } catch {}
+}, [box]);
   useEffect(()=>{
     const el=contentRef.current; if(!el) return;
     const onScroll=()=>{
@@ -988,7 +1087,7 @@ function App() {
     };
     el.addEventListener('scroll',onScroll,{passive:true});
     return ()=>el.removeEventListener('scroll',onScroll);
-  },[loading]);
+  },[]);
 
   const scrollTo=useCallback((key)=>{
     setSearch('');
@@ -996,23 +1095,23 @@ function App() {
     if(el&&contentRef.current) contentRef.current.scrollTop=el.offsetTop-16;
   },[]);
 
-  const handleCatch=useCallback((species)=>{
-    setBox(prev=>{ const u=[...prev,{species,status:'alive',id:Date.now()+Math.random()}]; localStorage.setItem('nuzlocke_box',JSON.stringify(u)); return u; });
-  },[]);
+const handleCatch = useCallback((species) => {
+  setBox(prev => [...prev, { species, status: 'alive', id: Date.now() + Math.random() }]);
+}, []);
 
   const getRoutes=useCallback((gymRoutes)=>gymRoutes.map(n=>{
     const found = routes.find(r=>r.name===n);
     if (found) return found;
     if (EXTRA_ENCOUNTERS[n]) return { name: n, encounters: {} };
     return null;
-  }).filter(Boolean),[routes]);
+  }).filter(Boolean),[]);
 
   const searchResults=search.length>1 ? routes.filter(r=>r.name.toLowerCase().includes(search.toLowerCase())) : null;
 
   const allNavItems=[
     ...GYM_SECTIONS.map(g=>({key:g.gym,label:g.gym,badge:g.badge,emoji:g.emoji})),
-    {key:'Other',label:'Other',badge:'Safari Zone + Navel Rock',emoji:'🎁',tooltip:'Contains Safari Zone & Navel Rock encounters'},
-    {key:'Special',label:'Special',badge:'Trades + Game Corner',emoji:'✨'},
+    {key:'Other',label:'Other',badge:'Safari Zone + Navel Rock',emoji:<BallIcon/>,tooltip:'Contains Safari Zone & Navel Rock encounters'},
+    {key:'Special',label:'Trades',emoji:'🔄'},
   ];
 
   return (
@@ -1057,7 +1156,6 @@ function App() {
         </nav>
 
         <main className="content" ref={contentRef}>
-          {loading && <div className="loading">⏳ Loading encounter data...</div>}
           {searchResults && (
             <div className="search-results-wrap">
               <h2 className="search-title">Results for "{search}" ({searchResults.length})</h2>
@@ -1067,7 +1165,7 @@ function App() {
               }
             </div>
           )}
-          {!searchResults && !loading && (
+          {!searchResults && (
             <>
               {GYM_SECTIONS.map(({gym,badge,emoji,routes:gr})=>(
                 <div key={gym} className="gym-section" ref={el=>sectionRefs.current[gym]=el}>
@@ -1079,7 +1177,7 @@ function App() {
                 </div>
               ))}
               <div ref={el=>sectionRefs.current['Other']=el}><OtherSection box={box} onCatch={handleCatch}/></div>
-              <div ref={el=>sectionRefs.current['Special']=el}><SpecialSection/></div>
+              <div ref={el=>sectionRefs.current['Special']=el}><SpecialSection box={box} onCatch={handleCatch}/></div>
             </>
           )}
         </main>

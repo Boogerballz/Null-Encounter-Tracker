@@ -261,3 +261,133 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ---- Responsive encounter grid ---- */
+/* Each method box measures its own width, so the grid reacts to the space
+   left after the sidebar and tracker panel, not just the window size. */
+.encounter-method {
+  container-type: inline-size;
+}
+
+.sprite-grid {
+  display: grid;
+  gap: 8px;
+  /* fallback for browsers without container queries */
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+}
+
+.sprite-card {
+  min-width: 0;            /* lets cards shrink instead of overflowing */
+  width: auto;
+}
+
+.sprite-name {
+  overflow-wrap: anywhere; /* long names like Tauros-Paldea-Blaze wrap */
+  text-align: center;
+}
+
+.sprite-img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Column counts are factors of 12, so a full 12-Pokémon table always
+   splits into even rows: 12 → 6+6 → 4+4+4 → 3×4 → 2×6 */
+@container (min-width: 1150px) {
+  .sprite-grid { grid-template-columns: repeat(12, 1fr); }
+}
+@container (min-width: 560px) and (max-width: 1149.98px) {
+  .sprite-grid { grid-template-columns: repeat(6, 1fr); }
+}
+@container (min-width: 380px) and (max-width: 559.98px) {
+  .sprite-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@container (min-width: 280px) and (max-width: 379.98px) {
+  .sprite-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@container (max-width: 279.98px) {
+  .sprite-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+
+html {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;              /* Chrome, Edge, Safari */
+}
+
+.sidebar {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;
+}
+.sidebar::-webkit-scrollbar {
+  display: none;               /* Chrome, Edge, Safari */
+}
+
+/* ---- Trades ---- */
+.trade-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 12px 0 8px;
+}
+.trade-offers {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.trade-icon {
+  position: relative;
+  width: 120px;
+  flex: 0 0 auto;
+}
+.trade-arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+.trade-icon.trade-owned {
+  border: 2px solid #2ecc71;
+  box-shadow: 0 0 0 1px rgba(46, 204, 113, 0.25);
+}
+.check-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2ecc71;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.trade-note {
+  font-size: 0.65rem;
+  color: var(--text2);
+  text-align: center;
+  margin-top: 2px;
+}
+
+.trade-card .encounter-method {
+  padding: 10px 14px 12px;
+}
+
+.trade-rate {
+  color: var(--red);
+  font-weight: 700;
+}
