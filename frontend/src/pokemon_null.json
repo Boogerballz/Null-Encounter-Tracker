@@ -5879,12 +5879,12 @@
             "rate": 10
           },
           {
-            "pokemon": "Castform",
+            "pokemon": "Tapu Koko",
             "level": 70,
             "rate": 5
           },
           {
-            "pokemon": "Tapu Koko",
+            "pokemon": "Tapu Bulu",
             "level": 70,
             "rate": 4
           },
@@ -6896,17 +6896,17 @@
         ],
         "fishing": [
           {
-            "pokemon": "Toxapex",
+            "pokemon": "Veluza",
             "level": 61,
             "rate": 20
           },
           {
-            "pokemon": "Corsola-Galar",
+            "pokemon": "Corsola",
             "level": 61,
             "rate": 20
           },
           {
-            "pokemon": "Palafin",
+            "pokemon": "Gyarados",
             "level": 61,
             "rate": 20
           },
@@ -6916,12 +6916,12 @@
             "rate": 20
           },
           {
-            "pokemon": "Gyarados",
+            "pokemon": "Toxapex",
             "level": 61,
             "rate": 10
           },
           {
-            "pokemon": "Veluza",
+            "pokemon": "Corsola-Galar",
             "level": 61,
             "rate": 10
           }
@@ -7556,7 +7556,7 @@
             "rate": 4
           },
           {
-            "pokemon": "Marowak",
+            "pokemon": "Heatran",
             "level": 55,
             "rate": 1
           }

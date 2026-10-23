@@ -377,8 +377,9 @@ const EXTRA_ENCOUNTERS = {
   },
   "Route 111": {
     static: [
-      {pokemon:"Golett",level:25,rate:25},{pokemon:"Sandygast",level:25,rate:25},
-      {pokemon:"Sandshrew",level:25,rate:25},{pokemon:"Phanpy",level:25,rate:25},
+      {pokemon:"Golett",level:25,rate:20},{pokemon:"Sandygast",level:25,rate:20},
+      {pokemon:"Sandshrew",level:25,rate:20},{pokemon:"Phanpy",level:25,rate:20},
+      {pokemon:"Orthworm",level:25,rate:20}
     ],
   },
   "New Mauville (Inside)": {
@@ -388,6 +389,17 @@ const EXTRA_ENCOUNTERS = {
       {pokemon:"Stunfisk-Galar",level:20,rate:20},
     ],
   },
+"Fortree City": {
+    static: [
+      {pokemon:"Kecleon",level:30,rate:100},
+    ],
+  },
+"Route 120": {
+    static: [
+      {pokemon:"Kecleon",level:30,rate:100},
+    ],
+  },
+
   "Aqua Hideout": {
     static: [
       {pokemon:"Gimmighoul",level:35,rate:20},{pokemon:"Electrode-Hisui",level:35,rate:20},
