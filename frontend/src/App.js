@@ -860,7 +860,7 @@ const NOTE_LABELS = {
   "Shoal Cave (Inner Room)": { surfing: "Politoed can use Perish Song" },
   "Route 126":               { fishing: "Politoed can use Perish Song" },
   "Route 122":               { surfing: "Mismagius can use Perish Song" },
-  "Fortree City":            { grass: "Altaria can use Perish Song" },
+  "Fortree City":            { grass: "Altaria can use Perish Song", trade: "2 guaranteed 31 IVs" },
   "Route 131":               { surfing: "Primarina can use Perish Song" },
   "Dewford Town":            { grass: "Both Natu and Abra can use Teleport" },
   "Meteor Falls":            { rock_smash: "Solrock can use Explosion" },
@@ -874,7 +874,6 @@ const NOTE_LABELS = {
   "Rustboro City":             { trade: "2 guaranteed 31 IVs" },
   "Mirage Tower 3F":           { trade: "2 guaranteed 31 IVs" },
   "Weather Institute":         { trade: "2 guaranteed 31 IVs & Genie is selected at random" },
-  "Fortree City":              { trade: "2 guaranteed 31 IVs" },
 };
 
 function OtherLocationCard({ name, encounters, box, onCatch }) {
