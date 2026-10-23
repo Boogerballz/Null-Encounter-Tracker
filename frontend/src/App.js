@@ -1068,7 +1068,7 @@ const offerRate = trade.offered.length > 1 && openCount > 0 ? Math.round(1000 / 
 function SpecialSection({ box, onCatch }) {
   return (
     <div className="special-section">
-      <div className="gym-header"><h2>✨ Special Encounters</h2></div>
+      <div className="gym-header"><h2>Trades 🔄 </h2></div>
       {TRADES.map(t => <TradeCard key={t.location} trade={t} box={box} onCatch={onCatch} />)}
     </div>
   );
